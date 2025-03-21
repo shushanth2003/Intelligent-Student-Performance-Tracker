@@ -5,7 +5,7 @@ import registerImg from '../Loginimage/loginimg.jpg';
 
 const Createaccount = () => {
   const [formData, setFormData] = useState({
-    fullName: '',
+    username: '',
     email: '',
     password: '',
   });
@@ -19,14 +19,22 @@ const Createaccount = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('YOUR_API_ENDPOINT', formData);
-      if (response.data.success) {
+      const response = await axios.post('http://localhost:6969/api/register', formData);
+      // Backend response structure based on your backend code
+      if (response.status === 201) {
         setMessage('Account created successfully!');
-      } else {
-        setMessage('Account already exists.');
       }
     } catch (error) {
-      setMessage('An error occurred. Please try again.');
+      // Handle errors based on backend response
+      if (error.response) {
+        if (error.response.status === 400) {
+          setMessage(error.response.data.message || 'Account already exists.');
+        } else if (error.response.status === 500) {
+          setMessage('Server error, please try again later.');
+        }
+      } else {
+        setMessage('An error occurred. Please try again.');
+      }
     }
   };
 
@@ -42,14 +50,14 @@ const Createaccount = () => {
           <form onSubmit={handleSubmit}>
             <div className="mb-3 flex flex-col">
               <label className="text-blue-500 text-xs font-semibold relative top-2 ml-[7px] px-[3px] bg-white w-fit">
-                Full Name:
+                Username:
               </label>
               <input
                 type="text"
-                name="fullName"
-                value={formData.fullName}
+                name="username"
+                value={formData.username}
                 onChange={handleChange}
-                placeholder="Enter your full name..."
+                placeholder="Enter your username..."
                 className="border-blue-500 px-[10px] py-[11px] text-xs bg-gray-200 border-2 rounded-[5px] w-full focus:outline-none placeholder:text-black/25"
                 required
               />
@@ -96,5 +104,3 @@ const Createaccount = () => {
 };
 
 export default Createaccount;
-
-

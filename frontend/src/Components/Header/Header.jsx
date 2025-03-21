@@ -3,10 +3,12 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import Logo from '../Loginimage/images/Logo.png';
 
 const Header = () => {
-  const [username, setUsername] = useState(null);
+  // Direct-a localStorage-la irunthu username eduthu state initialize pannu
+  const [username, setUsername] = useState(localStorage.getItem('username') || null);
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Optional: If localStorage changes elsewhere, this will update
     const storedUsername = localStorage.getItem('username');
     if (storedUsername) {
       setUsername(storedUsername);
@@ -22,10 +24,7 @@ const Header = () => {
   return (
     <header>
       <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-        {/* Logo */}
         <img src={Logo} alt="Your Logo" className="h-15 w-auto object-contain" />
-
-        {/* Navigation Links */}
         <nav>
           <ul className="flex space-x-8 text-lg font-medium">
             <li>

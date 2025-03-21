@@ -19,21 +19,24 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('YOUR_API_ENDPOINT', formData);
-      if (response.data.success) {
-        localStorage.setItem('username', response.data.username);
+      const response = await axios.post('http://localhost:6969/api/login', formData);
+      if (response.status === 200) {
+        const username = response.data.user?.username; // Username eduthukuren
+        if (!username) throw new Error("Username not found in response");
+        localStorage.setItem('username', username); // Username save pannuren
+        console.log("Get the username from a database:", username);
         setMessage('Login successful!');
-        navigate('/'); // Redirect to the homepage or desired route
-      } else {
-        setMessage('Invalid email or password.');
+        navigate('/');
       }
     } catch (error) {
       if (error.response) {
-        setMessage(`Error: ${error.response.data.message}`);
-      } else if (error.request) {
-        setMessage('Network error. Please try again.');
+        if (error.response.status === 400) {
+          setMessage(error.response.data.message || 'Invalid email or password.');
+        } else if (error.response.status === 500) {
+          setMessage('Server error, please try again later.');
+        }
       } else {
-        setMessage(`Error: ${error.message}`);
+        setMessage('Network error. Please try again.');
       }
     }
   };
@@ -95,8 +98,5 @@ const Login = () => {
 };
 
 export default Login;
-
-
-
   
   
