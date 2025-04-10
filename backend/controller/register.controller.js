@@ -1,5 +1,6 @@
 const User = require("../model/data.model.js");
 const bcrypt = require("bcryptjs");
+const Student=require("../model/student.model.js")
 
 
 const register = async (req, res) => {
@@ -41,4 +42,14 @@ const register = async (req, res) => {
     }
   };
 
-module.exports={register,login};
+  const studentdataset = async (req, res) => {
+    try {
+      const students = await Student.find({}, { name: 1, id: 1, totalCGPA: 1, attendance: 1, _id: 0 });
+      res.status(200).json(students);
+    } catch (error) {
+      console.error('Error fetching students:', error);
+      res.status(500).json({ error: 'Failed to fetch students' });
+    }
+  };
+  
+  module.exports = { register, login, studentdataset };
