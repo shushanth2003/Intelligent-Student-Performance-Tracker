@@ -1,14 +1,21 @@
-const express=require('express');
-const router=express.Router();
-const {register,login,studentdataset}=require("../controller/register.controller.js")
+const express = require('express');
+const router = express.Router();
+const { register, login, studentdataset, fullStudentDataset, updateStudent, deleteStudent } = require("../controller/register.controller.js");
 
-//create an account
-
-router.post("/register",register);
-// login page
+// Create an account
+router.post("/register", register);
+// Login page
 router.post("/login", login);
 
-//dataset checking
+// Dataset checking
 router.get('/students', studentdataset);
 
-module.exports=router;
+// Full dataset
+router.get('/students/full', fullStudentDataset);
+
+// Update endpoint
+router.put('/students/:id', updateStudent);
+// Delete endpoint
+router.delete('/students/:id', deleteStudent);
+
+module.exports = router;

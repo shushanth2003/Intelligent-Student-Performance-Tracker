@@ -2,16 +2,32 @@ import React, { useState, useEffect, useRef } from 'react';
 import Chart from 'chart.js/auto';
 
 function Dashboard() {
-  // Student list data (static for now)
-  const [students, setStudents] = useState([
-    { name: 'Raju', id: 'S001', grade: 9.0, attendance: 95 },
-    { name: 'Priya', id: 'S002', grade: 8.7, attendance: 90 },
-    { name: 'Arun', id: 'S003', grade: 8.3, attendance: 88 },
-    { name: 'Kavi', id: 'S004', grade: 7.9, attendance: 92 },
-  ]);
+  // Student list data (initially empty, will be filled by backend)
+  const [students, setStudents] = useState([]);
+  const [averageGrade, setAverageGrade] = useState(0);
+  const chartRef = useRef(null);
+  const [semesterData, setSemesterData] = useState([]); // New state for average grade
 
   // Search input state
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Fetch data from backend
+  useEffect(() => {
+    fetch('http://localhost:6969/api/students')
+      .then(res => res.json())
+      .then(data => setStudents(data))
+      .catch(err => console.error('Error fetching students:', err));
+  }, []);
+
+  // Update average grade when students data changes
+  useEffect(() => {
+    if (students.length > 0) {
+      const avg = (students.reduce((sum, student) => sum + student.totalCGPA, 0) / students.length).toFixed(1);
+      setAverageGrade(avg);
+    } else {
+      setAverageGrade(0);
+    }
+  }, [students]); // Dependency on students state
 
   // Filtered students based on search
   const filteredStudents = students.filter(student =>
@@ -22,56 +38,67 @@ function Dashboard() {
 
   // Calculate dynamic data for cards
   const totalStudents = students.length;
-  const averageGrade = students.length > 0
-    ? (students.reduce((sum, student) => sum + student.grade, 0) / students.length).toFixed(1)
-    : 0;
   const averageAttendance = students.length > 0
     ? (students.reduce((sum, student) => sum + student.attendance, 0) / students.length).toFixed(1)
     : 0;
 
-  // Chart setup
-  const chartRef = useRef(null);
-  useEffect(() => {
-    const ctx = document.getElementById('myChart').getContext('2d');
-    if (chartRef.current) {
-      chartRef.current.destroy();
-    }
-    chartRef.current = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4', 'Sem 5', 'Sem 6','Sem 7','Sem 8'],
-        datasets: [
-          {
-            label: 'Grades',
-            data: [7.8, 8.2, 8.0, 8.5, 9.0, 8.7,9.0,7.8],
-            borderColor: '#ff6200',
-            backgroundColor: 'rgba(255, 98, 0, 0.2)',
-            fill: true,
-            tension: 0.3,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        scales: {
-          y: {
-            beginAtZero: true,
-            max: 10,
-            title: { display: true, text: 'Grade' },
-          },
-          x: {
-            title: { display: true, text: 'Semester' },
-          },
-        },
-      },
-    });
+    useEffect(() => {
+      // Fetch full student data with semester grades
+      fetch('http://localhost:6969/api/students/full') // New endpoint needed
+        .then(res => res.json())
+        .then(data => {
+          // Calculate average for each semester
+          const averages = Array(8).fill(0).map((_, i) => {
+            const sem = `sem${i + 1}`;
+            const sum = data.reduce((acc, student) => acc + student[sem], 0);
+            return (sum / data.length).toFixed(1);
+          });
+          setSemesterData(averages);
+        })
+        .catch(err => console.error('Error fetching semester data:', err));
+    }, []);
 
-    return () => {
+    useEffect(() => {
+      const ctx = document.getElementById('myChart').getContext('2d');
       if (chartRef.current) {
         chartRef.current.destroy();
       }
-    };
-  }, []);
+      chartRef.current = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4', 'Sem 5', 'Sem 6', 'Sem 7', 'Sem 8'],
+          datasets: [
+            {
+              label: 'Average Grades',
+              data: semesterData, // Dynamic data from backend
+              borderColor: '#ff6200',
+              backgroundColor: 'rgba(255, 98, 0, 0.2)',
+              fill: true,
+              tension: 0.3,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 10,
+              title: { display: true, text: 'Grade' },
+            },
+            x: {
+              title: { display: true, text: 'Semester' },
+            },
+          },
+        },
+      });
+    
+      return () => {
+        if (chartRef.current) {
+          chartRef.current.destroy();
+        }
+      };
+    }, [semesterData]);
 
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -136,7 +163,7 @@ function Dashboard() {
                 <tr key={index}>
                   <td className="px-6 py-4 whitespace-nowrap">{student.name}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{student.id}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{student.grade}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{student.totalCGPA}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{student.attendance}%</td>
                 </tr>
               ))}

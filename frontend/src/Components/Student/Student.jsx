@@ -1,30 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 function Student() {
-  // Static data for 5 students
-  const [students, setStudents] = useState([
-    { name: 'Raju', id: 'S001', sem1: 7.8, sem2: 8.2, sem3: 8.0, sem4: 8.5, sem5: 9.0, sem6: 8.7, sem7: 8.8, sem8: 9.1 },
-    { name: 'Priya', id: 'S002', sem1: 8.0, sem2: 8.5, sem3: 8.3, sem4: 8.7, sem5: 9.2, sem6: 8.9, sem7: 9.0, sem8: 9.3 },
-    { name: 'Arun', id: 'S003', sem1: 7.5, sem2: 7.9, sem3: 8.1, sem4: 8.3, sem5: 8.8, sem6: 8.4, sem7: 8.6, sem8: 8.9 },
-    { name: 'Kavi', id: 'S004', sem1: 7.2, sem2: 7.6, sem3: 7.8, sem4: 8.0, sem5: 8.5, sem6: 8.2, sem7: 8.4, sem8: 8.7 },
-    { name: 'Siva', id: 'S005', sem1: 8.1, sem2: 8.4, sem3: 8.2, sem4: 8.6, sem5: 9.1, sem6: 8.8, sem7: 9.0, sem8: 9.2 },
-  ]);
-
-  // Search input state
+  // Student list data from backend
+  const [students, setStudents] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-
-  // State to track which row is being edited
   const [editingId, setEditingId] = useState(null);
   const [editData, setEditData] = useState(null);
 
-  // Filtered students based on search
-  const filteredStudents = students.filter(student =>
-    student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    student.id.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Fetch data from backend
+  useEffect(() => {
+    fetch('http://localhost:6969/api/students') // Now fetches full data
+      .then(res => res.json())
+      .then(data => setStudents(data))
+      .catch(err => console.error('Error fetching students:', err));
+  }, []);
 
   // Calculate CGPA for a student
   const calculateCGPA = (student) => {
+    console.log('Student object:', student); // Debug log
     const semesters = [
       student.sem1,
       student.sem2,
@@ -35,7 +28,9 @@ function Student() {
       student.sem7,
       student.sem8,
     ];
-    const total = semesters.reduce((sum, grade) => sum + grade, 0);
+    console.log('Semesters:', semesters); // Debug log
+    const total = semesters.reduce((sum, grade) => sum + (grade || 0), 0); // Handle undefined grades
+    console.log('Total:', total); // Debug log
     return (total / semesters.length).toFixed(2);
   };
 
@@ -45,17 +40,25 @@ function Student() {
     setEditData({ ...student });
   };
 
-  // Save edited data
-  const saveEdit = (studentId) => {
-    const updatedStudents = students.map(student => {
-      if (student.id === studentId) {
-        return { ...editData };
+  // Save edited data (to backend)
+  const saveEdit = async (studentId) => {
+    try {
+      const response = await fetch(`http://localhost:6969/api/students/${studentId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editData),
+      });
+      if (response.ok) {
+        const updatedStudent = await response.json();
+        setStudents(students.map(student => student.id === studentId ? updatedStudent : student));
+        setEditingId(null);
+        setEditData(null);
+      } else {
+        console.error('Update failed:', await response.text()); // Debug failed response
       }
-      return student;
-    });
-    setStudents(updatedStudents);
-    setEditingId(null);
-    setEditData(null);
+    } catch (error) {
+      console.error('Error updating student:', error);
+    }
   };
 
   // Cancel editing
@@ -69,25 +72,39 @@ function Student() {
     setEditData({ ...editData, [semester]: parseFloat(value) || 0 });
   };
 
-  // Delete a student
-  const deleteStudent = (studentId) => {
-    const updatedStudents = students.filter(student => student.id !== studentId);
-    setStudents(updatedStudents);
+  // Delete a student (from backend)
+  const deleteStudent = async (studentId) => {
+    try {
+      const response = await fetch(`http://localhost:6969/api/students/${studentId}`, {
+        method: 'DELETE',
+      });
+      if (response.ok) {
+        setStudents(students.filter(student => student.id !== studentId));
+      } else {
+        console.error('Delete failed:', await response.text()); // Debug failed response
+      }
+    } catch (error) {
+      console.error('Error deleting student:', error);
+    }
   };
+
+  // Filtered students based on search
+  const filteredStudents = students.filter(student =>
+    student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    student.id.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      
       {/* Search Input */}
       <div className="mb-4">
-      <input
-      type="text"
-      placeholder="Search by Name or ID..."
-      value={searchTerm}
-      onChange={(e) => setSearchTerm(e.target.value)}
-      className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition duration-200 ease-in-out"
-      />
-
+        <input
+          type="text"
+          placeholder="Search by Name or ID..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition duration-200 ease-in-out"
+        />
       </div>
 
       {/* Table */}
@@ -212,32 +229,18 @@ function Student() {
                       </button>
                     </>
                   ) : (
-                    // <button
-                      
-                    //   className="text-blue-600 hover:text-blue-800"
-                    // >
-                    //   Update
-                    // </button>
-                    <button class="cursor-pointer transition-all bg-green-500 text-white px-6 py-2 rounded-lg
-                    border-green-600
-                    border-b-[4px] hover:brightness-110 hover:-translate-y-[1px] hover:border-b-[6px]
-                    active:border-b-[2px] active:brightness-90 active:translate-y-[2px]"
-                    onClick={() => startEditing(student)}>
+                    <button
+                      className="cursor-pointer transition-all bg-green-500 text-white px-6 py-2 rounded-lg border-green-600 border-b-[4px] hover:brightness-110 hover:-translate-y-[1px] hover:border-b-[6px] active:border-b-[2px] active:brightness-90 active:translate-y-[2px]"
+                      onClick={() => startEditing(student)}
+                    >
                       Update
                     </button>
                   )}
-                  {/* <button
+                  <button
+                    className="cursor-pointer transition-all bg-red-500 text-white px-6 py-2 rounded-lg border-red-600 border-b-[4px] hover:brightness-110 hover:-translate-y-[1px] hover:border-b-[6px] active:border-b-[2px] active:brightness-90 active:translate-y-[2px]"
                     onClick={() => deleteStudent(student.id)}
-                    className="text-red-600 hover:text-red-800"
                   >
                     Delete
-                  </button> */}
-                  
-                  <button class="cursor-pointer transition-all bg-red-500 text-white px-6 py-2 rounded-lg
-                  border-red-600
-                  border-b-[4px] hover:brightness-110 hover:-translate-y-[1px] hover:border-b-[6px]
-                  active:border-b-[2px] active:brightness-90 active:translate-y-[2px]" onClick={() => deleteStudent(student.id)}>
-                    delete
                   </button>
                 </td>
               </tr>
