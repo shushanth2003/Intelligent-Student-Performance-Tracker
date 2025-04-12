@@ -217,11 +217,6 @@ function Analytics() {
           </div>
         </div>
       </main>
-
-      {/* Footer */}
-      <footer className="bg-orange-500 text-white text-center py-4 mt-8">
-        <p>© created by GradeSync.</p>
-      </footer>
     </div>
   );
 }
