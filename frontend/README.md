@@ -23,7 +23,7 @@ This project is a web-based **Student Performance Dashboard** designed to visual
 *Description*: Users can create a new account by entering username, email, and password, with a "Sign Up" button and "Already have an account? Login" link.
 
 #### 3. Dashboard
-c:\Users\bsshu\OneDrive\Pictures\Screenshots\Screenshot 2025-04-12 074734.png
+![alt text](image.png)
 *Description*: Overview page showing total students (97), average grade (8.2), attendance rate (90.9%), and a performance trends chart.
 
 #### 4. Student Table
