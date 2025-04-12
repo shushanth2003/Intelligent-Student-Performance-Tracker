@@ -15,7 +15,7 @@ This project is a web-based **Student Performance Dashboard** designed to visual
 
 ### Screenshots
 #### 1. Login Page
-![Login Page]()  
+![alt text](<Screenshot 2025-04-12 074849.png>)
 *Description*: Users can log in with their email and password. Includes options for "Forgot Password?" and "Don't have an account? Create Account".
 
 #### 2. Signup Page
