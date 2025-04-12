@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Chart from 'chart.js/auto';
 
-function Analysis() {
+function Analytics() {
   // State for students data, loading, and error
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -20,6 +20,7 @@ function Analysis() {
         return res.json();
       })
       .then(data => {
+        console.log('Fetched data:', data); // Debug log
         setStudents(data);
         setSelectedStudent(data[0]); // Default to first student
         setLoading(false);
@@ -43,9 +44,13 @@ function Analysis() {
   // Initialize charts
   useEffect(() => {
     const initializeCharts = () => {
+      // Destroy existing charts to avoid duplication
+      if (performanceChartRef.current) performanceChartRef.current.destroy();
+      if (comparisonChartRef.current) comparisonChartRef.current.destroy();
+
       // Performance Chart (Line Chart for selected student)
       const performanceCtx = document.getElementById('performanceChart');
-      if (performanceCtx && !performanceChartRef.current && selectedStudent) {
+      if (performanceCtx && selectedStudent) {
         console.log('Initializing performance chart for:', selectedStudent.name);
         performanceChartRef.current = new Chart(performanceCtx.getContext('2d'), {
           type: 'line',
@@ -91,7 +96,7 @@ function Analysis() {
 
       // Comparison Chart (Bar Chart for top 3 students)
       const comparisonCtx = document.getElementById('comparisonChart');
-      if (comparisonCtx && !comparisonChartRef.current && students.length > 0) {
+      if (comparisonCtx && students.length > 0) {
         console.log('Initializing comparison chart');
         const topStudents = [...students]
           .sort((a, b) => parseFloat(calculateCGPA(b)) - parseFloat(calculateCGPA(a)))
@@ -140,12 +145,6 @@ function Analysis() {
     };
 
     initializeCharts();
-
-    // Cleanup charts on unmount or data change
-    return () => {
-      if (performanceChartRef.current) performanceChartRef.current.destroy();
-      if (comparisonChartRef.current) comparisonChartRef.current.destroy();
-    };
   }, [students, selectedStudent]);
 
   // Handle student selection
@@ -158,7 +157,7 @@ function Analysis() {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen bg-white">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
       </div>
     );
   }
@@ -173,10 +172,7 @@ function Analysis() {
 
   return (
     <div className="min-h-screen bg-white font-sans">
-      {/* Header */}
-      <header className="bg-green-600 text-white py-6">
-        <h1 className="text-3xl font-bold text-center">Student Dashboard</h1>
-      </header>
+      
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -189,7 +185,7 @@ function Analysis() {
             id="studentSelect"
             value={selectedStudent?.id || ''}
             onChange={handleStudentChange}
-            className="w-full max-w-xs p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="w-full max-w-xs p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
           >
             {students.map(student => (
               <option key={student.id} value={student.id}>
@@ -224,10 +220,10 @@ function Analysis() {
 
       {/* Footer */}
       <footer className="bg-orange-500 text-white text-center py-4 mt-8">
-        <p>© 2025 Student Performance Analytics. Powered by xAI.</p>
+        <p>© created by GradeSync.</p>
       </footer>
     </div>
   );
 }
 
-export default Analysis;
+export default Analytics;
