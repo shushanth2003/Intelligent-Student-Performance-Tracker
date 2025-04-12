@@ -15,11 +15,11 @@ This project is a web-based **Student Performance Dashboard** designed to visual
 
 ### Screenshots
 #### 1. Login Page
-![Login Page](https://via.placeholder.com/300x200?text=Login+Page)  
+![Login Page]()  
 *Description*: Users can log in with their email and password. Includes options for "Forgot Password?" and "Don't have an account? Create Account".
 
 #### 2. Signup Page
-![Signup Page](https://via.placeholder.com/300x200?text=Signup+Page)  
+![Signup Page]("C:\Users\bsshu\OneDrive\Pictures\Screenshots\Screenshot 2025-04-12 074849.png")  
 *Description*: Users can create a new account by entering username, email, and password, with a "Sign Up" button and "Already have an account? Login" link.
 
 #### 3. Dashboard
